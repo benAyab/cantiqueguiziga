@@ -7,3 +7,9 @@ if (settings.hasProperty("newArchEnabled") && settings.newArchEnabled == "true")
     include(":ReactAndroid")
     project(":ReactAndroid").projectDir = file('../node_modules/react-native/ReactAndroid')
 }
+
+include ':react-native-fs'
+project(':react-native-fs').projectDir = file('../node_modules/react-native-fs/android')
+
+include ':react-native-pure-jwt'
+project(':react-native-pure-jwt').projectDir = file('../node_modules/react-native-pure-jwt/android')
