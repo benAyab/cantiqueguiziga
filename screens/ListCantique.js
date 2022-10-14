@@ -8,6 +8,7 @@ import {
   SafeAreaView, 
   Text, 
   View } from "react-native";
+  
 import RNPickerSelect from 'react-native-picker-select';
 import original_cantiques from "../assets/helper";
 
@@ -56,7 +57,7 @@ const ListScreen = ({ navigation }) =>{
     return(
         <View style={styles.container}>
               <RNPickerSelect
-                placeholder={{label: "Afficer par", value: null}}
+                placeholder={{label: "Afficher par", value: null}}
                 useNativeAndroidPickerStyle={true}
                 fixAndroidTouchableBug={true}
                 onValueChange={(value) => sortListBy(value)}

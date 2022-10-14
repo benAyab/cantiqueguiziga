@@ -19,6 +19,8 @@ target 'CantiqueGuiziga' do
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
+  pod 'react-native-ussd', :path => '../node_modules/react-native-ussd'
+
   target 'CantiqueGuizigaTests' do
     inherit! :complete
     # Pods for testing

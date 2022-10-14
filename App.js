@@ -6,6 +6,8 @@ import HomeScreen  from './screens/Home';
 import ListScreen from './screens/ListCantique';
 import DetailScreen from  './screens/DetailCantique';
 import PrayerScreen from './screens/Prayer';
+import ActivateScreen from './screens/activate';
+import checkScreen from './screens/checkKey';
 
 const Stack = createNativeStackNavigator();
 
@@ -13,6 +15,34 @@ function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator>
+      <Stack.Screen
+          name="CheckKey"
+          component={checkScreen}
+          options={{
+            title: 'Cantique Guiziga',
+            headerStyle: {
+              backgroundColor: '#31bd56',
+            },
+            headerTintColor: '#fff',
+            headerTitleStyle: {
+              fontWeight: 'bold',
+            }
+          }}
+        />
+        <Stack.Screen
+          name="Activation"
+          component={ActivateScreen}
+          options={{
+            title: 'Cantique Guiziga',
+            headerStyle: {
+              backgroundColor: '#31bd56',
+            },
+            headerTintColor: '#fff',
+            headerTitleStyle: {
+              fontWeight: 'bold',
+            }
+          }}
+        />
         <Stack.Screen 
           name="Home" 
           component={HomeScreen}
