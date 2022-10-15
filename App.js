@@ -7,7 +7,7 @@ import ListScreen from './screens/ListCantique';
 import DetailScreen from  './screens/DetailCantique';
 import PrayerScreen from './screens/Prayer';
 import ActivateScreen from './screens/activate';
-import checkScreen from './screens/checkKey';
+import CheckScreen from './screens/checkKey';
 
 const Stack = createNativeStackNavigator();
 
@@ -17,7 +17,7 @@ function App() {
       <Stack.Navigator>
       <Stack.Screen
           name="CheckKey"
-          component={checkScreen}
+          component={CheckScreen}
           options={{
             title: 'Cantique Guiziga',
             headerStyle: {

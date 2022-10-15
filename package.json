@@ -30,7 +30,6 @@
     "eslint": "^8.13.0",
     "jest": "^27.5.1",
     "metro-react-native-babel-preset": "^0.70.1",
-    "react-native-hover-react-sdk": "file:../hover-react-sdk",
     "react-test-renderer": "17.0.2"
   },
   "jest": {

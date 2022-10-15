@@ -2,22 +2,18 @@ import React, { useEffect, useState } from "react";
 
 import {
     ActivityIndicator,
-    Alert,
     Button,
     ImageBackground,
-    Modal,
     Pressable, 
     StyleSheet, 
     SafeAreaView, 
     Text, 
     View } from "react-native";
 
-    
-import { sign, decode } from "react-native-pure-jwt";
-
 import storage from '../helpers/storage';
+const image =  require("../assets/ancienpapier1.jpg");
 
-    const checkScreen = ({ navigation }) => {
+    const CheckScreen = ({ navigation }) => {
         const [showActivity, setShowActivity] = useState(true);
         const [showModal, setShowModal] = useState(false);
 
@@ -27,31 +23,19 @@ import storage from '../helpers/storage';
                 console.log(l);
                 //const license = JSON.parse(l);
               }else{
-                console.log("Application non activée");
-            }
+                if(showActivity){
+                  setShowActivity(false);
+                }
+              }
         })
 
-        if(showActivity){
+        if(showActivity){ 
             return(
                 <SafeAreaView style={styles.container}>
                     <ImageBackground source={image} resizeMode="cover" style={styles.image}>
                       <View>
                         <ActivityIndicator size="large" animating={showActivity} />
                       </View>
-                      <View>
-                      <Modal
-                        statusBarTranslucent={true}
-                            animationType="slide"
-                            transparent={false}
-                            visible={showModal}
-                        >
-                        </Modal>
-                      </View>
-                <Button
-                    title="Entrer"
-                    color="#31bd56"
-                    onPress={() => setShowModal(true)}
-                />
                 </ImageBackground>
             </SafeAreaView>
           );
@@ -59,23 +43,32 @@ import storage from '../helpers/storage';
             return(
                 <SafeAreaView style={styles.container}>
                     <ImageBackground source={image} resizeMode="cover" style={styles.image}>
+
                       <View>
-                      <Text style={styles.text}>
+                        <Text style={styles.text}>
                             Votre Application n'est pas activée 
                             ou votre licence a expiré
                         </Text>
                       </View>
-                <Button
-                    title="Entrer"
-                    color="#31bd56"
-                    onPress={() => setShowModal(true)}
-                />
+
+                      <View style={styles.section}>
+                        <Text style={{fontSize: 20}}>Si vous avez une clé à jour, entrez la clé pour activer</Text>
+                        <Pressable style={styles.button} onPress={() => navigation.navigate('Activation')}>
+                          <Text style={{fontSize: 22, fontFamily: "Baloo2-Regular"}} > Entrer une clé </Text> 
+                        </Pressable>
+                      </View>
+
+                      <View style={styles.section}>
+                        <Text style={{fontSize: 20}}>Si vous n'avez pas une clé à jour, vous pouvez obtenir</Text>
+                        <Pressable style={styles.button} onPress={() => console.log("Je veux une clé")}>
+                          <Text style={{fontSize: 22, fontFamily: "Baloo2-Regular"}}> Obtenir une clé</Text> 
+                        </Pressable>
+                      </View>
                 </ImageBackground>
             </SafeAreaView>
           );
         }
-
-    }
+      }
 
     const styles = StyleSheet.create({
         container: {
@@ -86,6 +79,10 @@ import storage from '../helpers/storage';
           justifyContent: "flex-start",
           paddingHorizontal: 16,
         },
+        section: {
+          alignItems: 'center',
+          marginTop: 50
+        },
         text: {
           padding: 10,
           color: "white",
@@ -93,13 +90,21 @@ import storage from '../helpers/storage';
           fontFamily: "Baloo2-Regular",
           fontWeight: "600",
           textAlign: "center",
-          borderWidth:1,
           borderColor: '#fff',
           alignItems:'center',
           justifyContent:'center',
+          marginTop: 20,
           marginBottom: 20,
-          backgroundColor:'rgba(255,255,255,0.2)',
-          borderRadius:5
-        }
+          backgroundColor:'rgba(255,20,25,0.4)',
+          borderRadius:25
+        },
+        button: {
+          backgroundColor:'rgba(25,255,25,0.5)',
+          borderRadius: 20,
+          padding: 5,
+          elevation: 5,
+          borderWidth: 1,
+          borderColor: 'rgba(205,255,205,0.4)'
+        },
       });
-      export default checkScreen;
+      export default CheckScreen;
