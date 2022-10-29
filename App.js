@@ -33,7 +33,7 @@ function App() {
           name="Activation"
           component={ActivateScreen}
           options={{
-            title: 'Cantique Guiziga',
+            title: 'Activation',
             headerStyle: {
               backgroundColor: '#31bd56',
             },

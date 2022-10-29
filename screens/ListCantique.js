@@ -32,7 +32,9 @@ const compareValue = (a, b) =>{
 
 const ListScreen = ({ navigation }) =>{
 
-  let [cantiques, setCantique] = useState(copy_original_cantiques)
+  let [cantiques, setCantique] = useState(copy_original_cantiques);
+
+  const [activityAnitmation, setAnimating] = useState(false);
 
     const renderItem = ({ item }) => (
         <Pressable onPress={() => navigation.navigate({params: {title: item.title, number: item.num}, name: "Detail"})}>
@@ -41,6 +43,8 @@ const ListScreen = ({ navigation }) =>{
     );
 
     const sortListBy = (props) =>{
+      setAnimating(true);
+      
       if(props === "num"){
         cantiques.sort(compareValue);
         setCantique(cantiques);
@@ -53,9 +57,12 @@ const ListScreen = ({ navigation }) =>{
         cantiques.sort(compareTitle).reverse();
         setCantique(cantiques)
       }
+
+      setAnimating(false);
     }
     return(
         <View style={styles.container}>
+          <View style={{backgroundColor: "black"}} >
               <RNPickerSelect
                 placeholder={{label: "Afficher par", value: null}}
                 useNativeAndroidPickerStyle={true}
@@ -67,8 +74,10 @@ const ListScreen = ({ navigation }) =>{
                     {key: "125", label: 'titre[Z - A]', value: 'title-r' }
                 ]}
               />
+          </View>
         <ImageBackground source={image} resizeMode="cover" style={styles.image}>
-        <SafeAreaView>  
+        <SafeAreaView>
+          <ActivityIndicator animating={activityAnitmation} size="large"/>
             <FlatList
                 data={cantiques}
                 renderItem={renderItem}

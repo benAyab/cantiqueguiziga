@@ -1,7 +1,5 @@
 import React, { useEffect }  from "react";
 import {Button, Image, ImageBackground, StyleSheet, Pressable, Text, View } from "react-native";
-
-import { sign, decode } from "react-native-pure-jwt";
  
 
 const image =  require("../assets/ancienpapier1.jpg" );

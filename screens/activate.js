@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 import {
     ActivityIndicator,
@@ -7,7 +7,7 @@ import {
     ImageBackground,
     Modal,
     TextInput,
-    Pressable, 
+    ToastAndroid,
     StyleSheet, 
     SafeAreaView, 
     Text, 
@@ -15,143 +15,257 @@ import {
 
 import NetInfo from '@react-native-community/netinfo';
 
+//utilities
 import storage from '../helpers/storage';
+import { isExpired } from '../helpers/utilities';
 
+//Const 
 const image =  require("../assets/ancienpapier1.jpg");
-const URL_LICENSE = 'http://192.168.201.127:3000';
-const PATH = '/api/license/';
+const LICENSE_URL = 'http://192.168.139.127:3000/api/license';
 
 
+const ActivateScreen = ({ navigation }) => {
+    const [showModal, setShowModal] = useState(false);
 
-    const ActivateScreen = ({ navigation }) => {
-        const [showActivity, setShowActivity] = useState(false);
-        const [showModal, setShowModal] = useState(false);
+    let licenseKey = "";
 
-        let licenseKey = "";
-        useEffect( () =>{
-          if(storage.contains('license')){
-              const l = storage.getString('license');
-                console.log(l);
-                  //const license = JSON.parse(l);
-             }else{
-                
-            }
-        });
-
-        const showAlert = (msg) =>{
-          Alert.alert(
-            "Infos",
-            msg,
-            [{
-              text: "OK",
-              onPress: () =>{
-                if(setShowModal){
+    const startLicenseCheck = async() =>{
+      if(licenseKey !== ""){
+        try{
+          const state = await NetInfo.fetch();
+          //First check internet connection
+          if(state.isInternetReachable){
+            //Well done !
+            //All stuffs here-->
+            setShowModal(true);
+            console.log("fetching license...");
+            const l = await getLicenseFromDB(licenseKey);
+            if(l && l.isEmpty){
+              showAlert("Aucune licence associée à cette clé n'a été trouvée. Vérifiez et Réessayez");
+              setShowModal(false);
+            }else{
+              console.log("License found. Checking status...");
+              if(l.msg.isActive){
+                console.log("License status: ENABLED. Checking validity...");
+                if(isExpired(l.msg.expiredate)){
+                  showAlert("Cette Licence a expiré");
                   setShowModal(false);
+                }else{
+                  console.log("License is not expired. Launching app...");
+                  saveLicenseKey(license.msg);
+                  navigation.reset({
+                    index: 0,
+                    routes: [
+                      {name: "Home"}
+                    ]
+                  });
+                }
+              }else{
+                console.log("License status: NOT ENABLED. Enabling...");
+                const enableResponse = await enableLicense(l.msg.serial);
+                if(!enableResponse){
+                  showAlert("Echec d'activation de la clé");
+                  setShowModal(false);
+                }else{
+                  console.log("License status changed to: ENABLED.");
+                  console.log("License verification on server...");
+                  const license = await getLicenseFromDB(l.msg.serial);
+                  if(license && !license.isEmpty && license.msg.isActive){
+                    console.log("License verified.");
+                    console.log("Storing License...");
+                    saveLicenseKey(license.msg);
+                    console.log("All done");
+                    setShowModal(false);
+                    navigation.reset({
+                      index: 0,
+                      routes: [
+                        {name: "Home"}
+                      ]
+                    });
+                  }else{
+                    console.log("License verifcation failed");
+                    showAlert("Echec de vérification de la clé. Vérifiez votre connexion internet et réessayez");
+                    setShowModal(false);
+                  }
                 }
               }
-            }],
-            {
-              cancelable: true,
-              onDismiss: () =>{
-                if(showModal){
-                  setShowModal(false);
-              }}
             }
-          )
-        }
-        const startLicenseCheck = async() =>{
-          try{
-            const state = await NetInfo.fetch();
-            console.log('Connection type: ', state.type);
-            console.log('Is connected ? ', state.isConnected);
-            console.log('Internet reachable ? ', state.isInternetReachable);
-
-            showAlert('Internet reachable ? '+ state.isInternetReachable);
-
-            const key = 'S4828-87VZE-2VAH3-BABFA-1E38A-5BE68';
-            const l = await getLicenseFromDB(key);
-            console.log(l);
-
-          }catch(err){
-            console.log();
+          }else{
+            //Otherwise nothing to do
+            showAlert("Aucune connexion Internet pour continuer le traitement");
           }
-
+        }catch(err){
+          console.log(err);
+          ToastAndroid.showWithGravity(err.message, ToastAndroid.SHORT, ToastAndroid.BOTTOM);
         }
-
-        const getLicenseFromDB = async(key) =>{
-          try{
-            const result = await fetch(URL_LICENSE+PATH+key);
-            const license = await result.json();
-            return license;
-          }catch(e){
-            console.log(e);
-          }
-          
-        }
-      
-
-        const getKeyFromUser = (txt) =>{ 
-          licenseKey = txt;
-          console.log(licenseKey);
-        }
-
-        const saveLicenseKey = (license) =>{
-          
-        }
-
-        //Wether license is expired or not
-        const checkExpirationLicense = (license) =>{
-          let date = new  Date(license. activationdate);  
-            if( (date.getTime()+365*24*3600*1000) <= Date.now()){
-             console.log("votre licence est à jour");
-            }
-        }
-
-        return(
-            <SafeAreaView style={styles.container}>
-                <ImageBackground source={image} resizeMode="cover" style={styles.image}>
-               
-                <View style={styles.inputContainer}>
-                  <TextInput 
-                      style={styles.textinput} 
-                      onChangeText={(txt) => getKeyFromUser(txt)}>
-                    </TextInput>
-                </View>
-
-                <View>
-                  <Button
-                      title="Entrer"
-                      color="#31bd56"
-                      onPress={startLicenseCheck}
-                  />
-                </View>
-
-                <View style={styles.centeredView}>
-                  <Modal
-                  transparent={false}
-                    style={{padding: 15, margin: 20}}
-                    visible={showModal}
-                    onRequestClose={() => setShowModal(false)}
-                  >
-                    <Text>Traitement encours...</Text>
-                    <ActivityIndicator size="large"/>
-                  </Modal>
-                </View>
-
-            </ImageBackground>
-        </SafeAreaView>
-      );
+      }
     }
 
-    const styles = StyleSheet.create({
+    const licenseFetch = async() =>{
+      if(licenseKey !== ""){
+        try{
+          console.log("fetching license...");
+          const l = await getLicenseFromDB(licenseKey);
+          if(l && l.isEmpty){
+            showAlert("Aucune licence associée à cette clé n'a été trouvée. Vérifiez et Réessayez");
+          }else{
+            console.log("License found. Checking status...");
+            if(l.msg.isActive){
+              console.log("License status: ENABLED. Checking validity...");
+              if(isExpired(l.msg.expiredate)){
+                showAlert("Cette Licence a expiré");
+              }else{
+                console.log("License is not expired. Launching app...");
+                saveLicenseKey(l.msg);
+                navigation.reset({
+                  index: 0,
+                  routes: [
+                    {name: "Home"}
+                  ]
+                });
+              }
+            }else{
+              console.log("License status: NOT ENABLED. Enabling...");
+              const enableResponse = await enableLicense(l.msg.serial);
+              if(!enableResponse){
+                showAlert("Echec d'activation de la clé");
+              }else{
+                console.log("License status changed to: ENABLED.");
+                console.log("License verification on server...");
+                const license = await getLicenseFromDB(l.msg.serial);
+                if(license && !license.isEmpty && license.msg.isActive){
+                  console.log("License verified.");
+                  console.log("Storing License...");
+
+                  saveLicenseKey(license.msg);
+                  
+                  navigation.reset({
+                    index: 0,
+                    routes: [
+                      {name: "Home"}
+                    ]
+                  });
+                  
+                }else{
+                  console.log("License verifcation failed");
+                }
+              }
+            }
+          }
+  
+        }catch(err){
+          console.log(err);
+          ToastAndroid.showWithGravity(err.message, ToastAndroid.SHORT, ToastAndroid.BOTTOM);
+        }
+      }
+    }
+
+    const enableLicense = async(serial) =>{
+      try{
+        const result = await fetch(`${LICENSE_URL}/${serial}`, {method: 'PUT'})
+        if(result.ok){
+          return true;
+        }
+        return false;
+      }catch(e){
+        console.log(e)
+      }
+    }
+
+    const getLicenseFromDB = async(key) =>{
+    try{
+      const result = await fetch(`${LICENSE_URL}/${key}`);
+      if(result.ok){
+        const license = await result.json();
+        return license;
+      }
+      return null;
+    }catch(e){
+      console.log(e);
+      showAlert(e.message);
+    } 
+  }
+      
+
+  const getKeyFromUser = (txt) =>{ 
+    licenseKey = txt;
+    //console.log(licenseKey);
+  }
+
+  const saveLicenseKey = (license) =>{
+    storage.set('license', JSON.stringify(license));
+  }
+
+  const showAlert = (msg) =>{
+    Alert.alert(
+      "Infos",
+      msg,
+      [{
+        text: "OK",
+        onPress: () =>{
+          if(setShowModal){
+            setShowModal(false);
+          }
+        }
+      }],
+      {
+        cancelable: true,
+        onDismiss: () =>{
+          if(showModal){
+            setShowModal(false);
+        }}
+      }
+    )
+  }
+
+  return(
+    <SafeAreaView style={styles.container}>
+      <ImageBackground source={image} resizeMode="cover" style={styles.image}> 
+        <View style={styles.inputContainer}>
+          <TextInput 
+              style={styles.textinput} 
+              autoCapitalize="characters"
+              autoFocus={true}
+              maxLength={18}
+              placeholder="Entrer la clé"
+              returnKeyType="send"
+              onEndEditing={licenseFetch}
+              onChangeText={(txt) => getKeyFromUser(txt)}>
+            </TextInput>
+        </View>
+
+        <View style={{marginHorizontal: 50, borderRadius: 20}}>
+            <Button
+                title="Activer"
+                color="#31bd56"
+                onPress={licenseFetch}
+            />
+        </View>
+        <Modal
+          transparent={true}
+          style={{padding: 15, margin: 20}}
+          visible={showModal}
+          onRequestClose={() => setShowModal(false)}
+        >
+          <View style={styles.centeredView}>
+            <Text style={{color:"black" ,fontFamily: "Baloo2-Regular", fontSize: 20}}>Traitement encours...</Text>
+            <ActivityIndicator size="large"/>
+          </View>
+        </Modal>
+              
+      </ImageBackground>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
         container: {
           flex: 1
         },
         centeredView:{
-            flex: 1,
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginTop: 20
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
         },
         image: {
           flex: 1,
