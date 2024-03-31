@@ -21,7 +21,8 @@ import { isExpired } from '../helpers/utilities';
 
 //Const 
 const image =  require("../assets/ancienpapier1.jpg");
-const LICENSE_URL = 'http://192.168.139.127:3000/api/license';
+//const LICENSE_URL = 'http://192.168.139.127:3000/api/license';
+const LICENSE_URL =  'https://guiziga.alwaysdata.net/api/license'
 
 
 const ActivateScreen = ({ navigation }) => {
@@ -52,7 +53,7 @@ const ActivateScreen = ({ navigation }) => {
                   setShowModal(false);
                 }else{
                   console.log("License is not expired. Launching app...");
-                  saveLicenseKey(license.msg);
+                  saveLicenseKey(l.msg);
                   navigation.reset({
                     index: 0,
                     routes: [
@@ -101,65 +102,6 @@ const ActivateScreen = ({ navigation }) => {
       }
     }
 
-    const licenseFetch = async() =>{
-      if(licenseKey !== ""){
-        try{
-          console.log("fetching license...");
-          const l = await getLicenseFromDB(licenseKey);
-          if(l && l.isEmpty){
-            showAlert("Aucune licence associée à cette clé n'a été trouvée. Vérifiez et Réessayez");
-          }else{
-            console.log("License found. Checking status...");
-            if(l.msg.isActive){
-              console.log("License status: ENABLED. Checking validity...");
-              if(isExpired(l.msg.expiredate)){
-                showAlert("Cette Licence a expiré");
-              }else{
-                console.log("License is not expired. Launching app...");
-                saveLicenseKey(l.msg);
-                navigation.reset({
-                  index: 0,
-                  routes: [
-                    {name: "Home"}
-                  ]
-                });
-              }
-            }else{
-              console.log("License status: NOT ENABLED. Enabling...");
-              const enableResponse = await enableLicense(l.msg.serial);
-              if(!enableResponse){
-                showAlert("Echec d'activation de la clé");
-              }else{
-                console.log("License status changed to: ENABLED.");
-                console.log("License verification on server...");
-                const license = await getLicenseFromDB(l.msg.serial);
-                if(license && !license.isEmpty && license.msg.isActive){
-                  console.log("License verified.");
-                  console.log("Storing License...");
-
-                  saveLicenseKey(license.msg);
-                  
-                  navigation.reset({
-                    index: 0,
-                    routes: [
-                      {name: "Home"}
-                    ]
-                  });
-                  
-                }else{
-                  console.log("License verifcation failed");
-                }
-              }
-            }
-          }
-  
-        }catch(err){
-          console.log(err);
-          ToastAndroid.showWithGravity(err.message, ToastAndroid.SHORT, ToastAndroid.BOTTOM);
-        }
-      }
-    }
-
     const enableLicense = async(serial) =>{
       try{
         const result = await fetch(`${LICENSE_URL}/${serial}`, {method: 'PUT'})
@@ -174,7 +116,11 @@ const ActivateScreen = ({ navigation }) => {
 
     const getLicenseFromDB = async(key) =>{
     try{
-      const result = await fetch(`${LICENSE_URL}/${key}`);
+      const result = await fetch(`${LICENSE_URL}/${key}`,{
+      method: 'GET',
+      headers: {'Content-Type': 'application/json', }
+    });
+
       if(result.ok){
         const license = await result.json();
         return license;
@@ -186,7 +132,6 @@ const ActivateScreen = ({ navigation }) => {
     } 
   }
       
-
   const getKeyFromUser = (txt) =>{ 
     licenseKey = txt;
     //console.log(licenseKey);
@@ -229,7 +174,7 @@ const ActivateScreen = ({ navigation }) => {
               maxLength={18}
               placeholder="Entrer la clé"
               returnKeyType="send"
-              onEndEditing={licenseFetch}
+              onEndEditing={startLicenseCheck}
               onChangeText={(txt) => getKeyFromUser(txt)}>
             </TextInput>
         </View>
@@ -238,7 +183,7 @@ const ActivateScreen = ({ navigation }) => {
             <Button
                 title="Activer"
                 color="#31bd56"
-                onPress={licenseFetch}
+                onPress={startLicenseCheck}
             />
         </View>
         <Modal
@@ -290,5 +235,6 @@ const styles = StyleSheet.create({
           alignItems: "flex-start",
           marginVertical: 30
       }
-      });
-      export default ActivateScreen;
+});
+
+export default ActivateScreen;
